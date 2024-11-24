@@ -1,9 +1,8 @@
 package com.capgemini.wsb.fitnesstracker.training.internal;
 
+import com.capgemini.wsb.fitnesstracker.training.api.Training;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -13,6 +12,7 @@ import java.util.List;
 class TrainingController {
 
     private final TrainingServiceImpl trainingService;
+    private final TrainingMapper trainingMapper;
 
     @GetMapping
     public List<TrainingDto> getAllTrainings() {
@@ -20,5 +20,43 @@ class TrainingController {
                 .stream()
                 .map(trainingMapper::toDto)
                 .toList();
+    }
+
+    @GetMapping("/user/{userId}")
+    public List<TrainingDto> getTrainingsByUser(@PathVariable Long userId) {
+        return trainingService.GetTrainingsByUser(userId)
+                .stream()
+                .map(trainingMapper::toDto)
+                .toList();
+    }
+
+    @GetMapping("/ended/{date}")
+    public List<TrainingDto> getTrainingsEndedAfter(@PathVariable String date) {
+        return trainingService.GetTrainingsEndedAfter(date)
+                .stream()
+                .map(trainingMapper::toDto)
+                .toList();
+    }
+
+    @GetMapping("/activity/{activityType}")
+    public List<TrainingDto> getTrainingsByActivityType(@PathVariable ActivityType activityType) {
+        return trainingService.GetTrainingsByActivityType(activityType)
+                .stream()
+                .map(trainingMapper::toDto)
+                .toList();
+    }
+
+    @PostMapping
+    public TrainingDto createTraining(@RequestBody TrainingDto trainingDto) {
+        Training training = trainingMapper.toEntity(trainingDto);
+        Training createdTraining = trainingService.createTraining(training);
+        return trainingMapper.toDto(createdTraining);
+    }
+
+    @PutMapping("/{id}")
+    public TrainingDto updateTraining( @RequestBody TrainingDto trainingDto) {
+        Training training = trainingMapper.toEntity(trainingDto);
+        Training updatedTraining = trainingService.updateTraining(training);
+        return trainingMapper.toDto(updatedTraining);
     }
 }

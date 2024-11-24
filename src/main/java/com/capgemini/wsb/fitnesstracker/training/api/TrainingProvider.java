@@ -17,7 +17,7 @@ public interface TrainingProvider {
      */
     Optional<Training> getTraining(Long trainingId);
     List<Training> GetAllTrainings();
-    List<Training> GetTrainingsByUser(User user);
+    List<Training> GetTrainingsByUser(Long userId);
     List<Training> GetTrainingsEndedAfter(String date);
     List<Training> GetTrainingsByActivityType(ActivityType activityType);
 

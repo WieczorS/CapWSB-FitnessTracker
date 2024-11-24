@@ -12,6 +12,7 @@ public class TrainingMapper {
     public TrainingMapper(UserMapper userMapper) {
         this.userMapper = userMapper;
     }
+
     public TrainingDto toDto(Training training) {
         return new TrainingDto(
                 training.getId(),
@@ -21,6 +22,17 @@ public class TrainingMapper {
                 training.getActivityType(),
                 training.getDistance(),
                 training.getAverageSpeed()
+        );
+    }
+
+    public Training toEntity(TrainingDto trainingDto) {
+        return new Training(
+                userMapper.toEntity(trainingDto.user()),
+                trainingDto.startTime(),
+                trainingDto.endTime(),
+                trainingDto.activityType(),
+                trainingDto.distance(),
+                trainingDto.averageSpeed()
         );
     }
 }

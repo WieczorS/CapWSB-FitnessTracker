@@ -41,7 +41,7 @@ public class TrainingServiceImpl implements TrainingProvider, TrainingService {
     }
 
     @Override
-    public List<Training> GetTrainingsByUser(User user) {
+    public List<Training> GetTrainingsByUser(Long userId) {
         return List.of();
     }
 
