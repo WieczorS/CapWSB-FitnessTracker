@@ -48,18 +48,17 @@ class UserServiceImpl implements UserService, UserProvider {
     }
 
     @Override
-    public List<User> findAllUsers() {
-        return userRepository.findAll();
+    public List<User> findAllUsers() { return userRepository.findAll(); }
+
+    @Override
+    public List<User> getUsersOlderThan(LocalDate maxDate) {
+        return userRepository.findUsersYoungerThan(maxDate);
     }
 
     @Override
-    public List<User> getUsersOlderThan(LocalDate age) {
-        return userRepository.getUsersOlderThanDate(age);
+    public List<User> GetUsersByParameter(Long id, String firstName, String lastName, LocalDate dateOfBirth, String email) {return List.of();
     }
 
-    @Override
-    public List<User> getUsersByEmailAddress(String email) {
-        return userRepository.getUsersByEmailAddress(email);
-    }
+    public List<User> findByEmailContainingIgnoreCase(String email) {return userRepository.findByEmailContainingIgnoreCase(email);}
 
 }

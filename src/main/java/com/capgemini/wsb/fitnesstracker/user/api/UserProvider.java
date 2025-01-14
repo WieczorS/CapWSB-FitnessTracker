@@ -31,8 +31,18 @@ public interface UserProvider {
      */
     List<User> findAllUsers();
 
+    /**
+     * Retrieves all users older than provided date.
+     *
+     * @return An {@link Optional} containing the all users, that fulfil the requirement
+     */
     List<User> getUsersOlderThan(LocalDate age);
 
-    List<User>getUsersByEmailAddress(String email);
+    /**
+     * Retrieves users based on provided parameters in fllowing sequence: ID -> name & surrName -> dateOfBirth -> emailAddress.
+     *
+     * @return An {@link Optional} containing the all users, that fulfil the requirement
+     */
+    List<User> GetUsersByParameter(Long id, String firstName, String lastName, LocalDate dateOfBirth, String email);
 
 }

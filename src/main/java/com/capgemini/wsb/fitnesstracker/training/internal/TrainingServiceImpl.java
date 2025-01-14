@@ -26,9 +26,7 @@ public class TrainingServiceImpl implements TrainingProvider, TrainingService {
     }
 
     @Override
-    public void deleteTraining(Long trainingId) {
-
-    }
+    public void deleteTraining(Long trainingId) {}
 
     @Override
     public Optional<Training> getTraining(final Long trainingId) {

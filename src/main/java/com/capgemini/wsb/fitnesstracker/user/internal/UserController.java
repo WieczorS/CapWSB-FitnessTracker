@@ -1,10 +1,10 @@
 package com.capgemini.wsb.fitnesstracker.user.internal;
 
 import com.capgemini.wsb.fitnesstracker.user.api.User;
+import com.capgemini.wsb.fitnesstracker.user.api.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -14,11 +14,10 @@ import java.util.List;
 @RequestMapping("/v1/users")
 @RequiredArgsConstructor
 class UserController {
+
     private final UserServiceImpl userService;
 
     private final UserMapper userMapper;
-    private final UserSimpleMapper userSimpleMapper;
-    private final UserEmailMapper userEmailMapper;
 
     @GetMapping
     public List<UserDto> getAllUsers() {
@@ -28,26 +27,53 @@ class UserController {
                 .toList();
     }
 
+    //get only id and full name (all users)
     @GetMapping("/simple")
     public List<UserSimpleDto> getAllUsersSimple() {
         return userService.findAllUsers()
                 .stream()
-                .map(userSimpleMapper::toSimpleDto)
+                .map(userMapper::toSimpleDto)
                 .toList();
     }
 
-    @GetMapping("/{userId}")
-    public UserDto getUser(@PathVariable Long userId) {
-        return userService.getUser(userId)
+    //get user by id
+    @GetMapping("/{Id}")
+    public UserDto getUser(@PathVariable Long Id) {
+        return userService.getUser(Id)
                 .map(userMapper::toDto)
-                .orElseThrow(() -> new IllegalArgumentException("User with ID: " + userId + " not found"));
+                .orElseThrow(() -> new UserNotFoundException(Id));
     }
+
+    //get user by ID/fullName/Date of birth/ e-mail
+    @GetMapping("/search")
+    public List<UserDto> searchUser(
+            @RequestParam(required = false) long id,
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @RequestParam(required = false) LocalDate dateOfBirth,
+            @RequestParam(required = false) String email
+            ){
+        return userService.GetUsersByParameter(id, firstName, lastName,  dateOfBirth, email)
+                .stream()
+                .map(userMapper::toDto)
+                .toList();
+    }
+
+
 
     @GetMapping("/email")
     public List<UserEmailDto> getUserByEmail(@RequestParam String email) {
-        return userService.getUsersByEmailAddress(email)
+        return userService.getUserByEmail(email)
                 .stream()
-                .map(userEmailMapper::toDto)
+                .map(userMapper::toEmailDto)
+                .toList();
+    }
+
+    @GetMapping("/email-part")
+    public List<UserEmailDto> getUserByEmailPartIgnoreCase(@RequestParam String email) {
+        return userService.findByEmailContainingIgnoreCase(email)
+                .stream()
+                .map(userMapper::toEmailDto)
                 .toList();
     }
 
@@ -60,41 +86,24 @@ class UserController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public User addUser(@RequestBody UserDto userDto) throws InterruptedException {
-        try {
-            User user = userMapper.toEntity(userDto);
-            userService.createUser(user);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Cannot add user with email: " + userDto.email() + " with error: " + e.getMessage());
-        }
+    public ResponseEntity<UserDto> addUser(@RequestBody UserDto userDto) {
+        User user = userMapper.toEntity(userDto);
 
-        // Demonstracja how to use @RequestBody
-        System.out.println("User with e-mail: " + userDto.email() + "passed to the request");
+        User createdUser = userService.createUser(user);
 
-        // TODO: saveUser with Service and return User
-        return null;
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toDto(createdUser));
     }
 
-    @PutMapping("/{userId}")
-    public User updateUser(@PathVariable Long userId, @RequestBody UserDto userDto) {
-        try {
-            User foundUser = userService.getUser(userId).orElseThrow(() -> new IllegalArgumentException("User with ID: " + userId + " not found"));
-            User updatedUser = userMapper.toUpdateEntity(userDto, foundUser);
-
-            return userService.updateUser(updatedUser);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Cannot update user with ID: " + userId + " with error: " + e.getMessage());
-        }
+    @PutMapping("/{user}")
+    public UserDto updateUser(@RequestBody UserDto userDto) {
+        User updatedUser = userService.updateUser(userMapper.toEntity(userDto));
+        //optionally we can use getUserById(userDto.id) here but it's unnecessary load for db
+        return userMapper.toDto(updatedUser);
     }
 
     @DeleteMapping("/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable Long userId) {
-        try {
-            userService.deleteUser(userId);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Cannot delete user with ID: " + userId + " with error: " + e.getMessage());
-        }
+    public ResponseEntity<?> deleteUserById(@PathVariable Long userId){
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
     }
 }
